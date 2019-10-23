@@ -1,4 +1,4 @@
-# clone the dataset repository from https://github.com/emanhamed/Houses-dataset
+# The dataset is available at https://github.com/emanhamed/Houses-dataset
 
 import datasets
 import models
@@ -12,20 +12,24 @@ import argparse
 import locale
 import os
 
+# Load data
 df = datasets.load_attributes("Houses_Dataset/HousesInfo.txt")
 images = datasets.load_images(df, "Houses_Dataset")
 
 images = images/255.0
 
+# Split the data
 (trainAttrX, testAttrX, trainImagesX, testImagesX) = train_test_split(df, images,
                                                      test_size=0.25, random_state=42)
 
+# Normalization
 max_price = trainAttrX["price"].max()
 trainY = trainAttrX["price"] / max_price
 testY = testAttrX["price"] / max_price
 
 (trainAttrX, testAttrX) = datasets.process_attributes(df, trainAttrX, testAttrX)
 
+# Create network
 mlp = models.build_mlp(trainAttrX.shape[1], False)
 cnn = models.build_cnn(64, 64, 3, regress=False)
 
@@ -44,6 +48,7 @@ model.fit(
 	validation_data=([testAttrX, testImagesX], testY),
 	epochs=200, batch_size=8)
 
+# Make predictions
 predictions = model.predict([testAttrX, testImagesX])
 
 difference = predictions.flatten() - testY
